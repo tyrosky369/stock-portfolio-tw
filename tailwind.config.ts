@@ -9,8 +9,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        washi: "#F5F0E8",
+        koke: "#8B9E77",
+        suna: "#C8B8A2",
+        cha: "#6B5344",
+        sumi: "#3A3028",
+      },
+      borderRadius: {
+        btn: "9999px",
+        card: "16px",
       },
     },
   },

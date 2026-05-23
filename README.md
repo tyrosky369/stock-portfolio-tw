@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 台美股資產儀表板
 
-## Getting Started
+台灣與美國股票庫存現值統計 Web 應用程式。
 
-First, run the development server:
+## 技術規格
+
+- Next.js 14 App Router + TypeScript + Tailwind CSS
+- PostgreSQL + Prisma 7 ORM
+- 股價來源：Yahoo Finance（`yahoo-finance2`）
+- 圖表：Recharts
+
+## 本地開發設定
+
+### 1. 啟動 PostgreSQL
+
+```bash
+# 用 Docker 啟動
+docker run -d \
+  --name stock-portfolio-db \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=stock_portfolio \
+  -p 5432:5432 \
+  postgres:16
+```
+
+### 2. 設定環境變數
+
+`.env.local` 已建立，預設值：
+```
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/stock_portfolio?schema=public"
+```
+
+### 3. 執行資料庫 Migration
+
+```bash
+npx prisma migrate dev --name init
+```
+
+### 4. 啟動開發伺服器
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+開啟 http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 頁面
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 路徑 | 功能 |
+|------|------|
+| `/` | 儀表板：總市值、圓餅圖、趨勢折線圖 |
+| `/tw-stocks` | 台股庫存管理 |
+| `/us-stocks` | 美股庫存管理 |
 
-## Learn More
+## API 路由
 
-To learn more about Next.js, take a look at the following resources:
+| Method | 路徑 | 說明 |
+|--------|------|------|
+| GET | `/api/holdings?market=TW\|US` | 取得持股列表（含最新股價） |
+| POST | `/api/holdings` | 新增持股 |
+| DELETE | `/api/holdings/[id]` | 刪除持股 |
+| POST | `/api/prices/refresh` | 更新現價（body: `{ market: "TW"\|"US" }`） |
+| GET | `/api/portfolio/summary` | 儀表板摘要 |
+| GET | `/api/portfolio/snapshots` | 趨勢圖歷史資料 |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 部署（Vercel + Supabase）
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. 在 [Supabase](https://supabase.com) 建立���費 PostgreSQL
+2. 複製 connection string → 設定 Vercel 環境變數 `DATABASE_URL`
+3. `git push` → Vercel 自動部署
