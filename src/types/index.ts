@@ -2,20 +2,28 @@ export type Market = "TW" | "US";
 
 export interface HoldingRow {
   id: string;
+  owner: string;
   market: Market;
   accountName: string;
   ticker: string;
   stockName: string;
   shares: number;
   avgCost: number | null;
-  latestPrice: number | null;      // 原幣
-  latestPriceTwd: number | null;   // 換算台幣
+  latestPrice: number | null;
+  latestPriceTwd: number | null;
   usdTwdRate: number | null;
   currentValueTwd: number | null;
   costTwd: number | null;
   pnlTwd: number | null;
   pnlPct: number | null;
   snapshotAt: string | null;
+}
+
+export interface MemberSummary {
+  owner: string;
+  totalValueTwd: number;
+  twValueTwd: number;
+  usValueTwd: number;
 }
 
 export interface PortfolioSummary {
@@ -26,6 +34,7 @@ export interface PortfolioSummary {
   usHoldings: { ticker: string; stockName: string; valueTwd: number }[];
   usdTwdRate: number | null;
   rateUpdatedAt: string | null;
+  memberSummaries: MemberSummary[];
 }
 
 export interface PortfolioSnapshotPoint {

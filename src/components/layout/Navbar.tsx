@@ -7,6 +7,7 @@ const links = [
   { href: "/", label: "儀表板" },
   { href: "/tw-stocks", label: "台股庫存" },
   { href: "/us-stocks", label: "美股庫存" },
+  { href: "/backup", label: "備份還原" },
 ];
 
 export default function Navbar() {

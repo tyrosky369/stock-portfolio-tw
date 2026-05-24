@@ -1,28 +1,40 @@
 "use client";
 
 import { useState } from "react";
+import { useMember } from "@/contexts/MemberContext";
 
 interface Props {
   market: "TW" | "US";
   onAdded: () => void;
 }
 
-const empty = {
+const emptyForm = (defaultOwner: string) => ({
+  owner: defaultOwner,
   accountName: "",
   ticker: "",
   stockName: "",
   shares: "",
   avgCost: "",
-};
+});
 
 export default function AddHoldingForm({ market, onAdded }: Props) {
+  const { selectedOwner, members, refreshMembers } = useMember();
+  const defaultOwner = selectedOwner === "全部" ? (members[0] ?? "我") : selectedOwner;
+
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState(empty);
+  const [form, setForm] = useState(emptyForm(defaultOwner));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function update(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function handleOpen() {
+    const owner = selectedOwner === "全部" ? (members[0] ?? "我") : selectedOwner;
+    setForm(emptyForm(owner));
+    setOpen(true);
+    setError(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,6 +47,7 @@ export default function AddHoldingForm({ market, onAdded }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           market,
+          owner: form.owner.trim() || "我",
           accountName: form.accountName,
           ticker: form.ticker.toUpperCase(),
           stockName: form.stockName,
@@ -44,8 +57,8 @@ export default function AddHoldingForm({ market, onAdded }: Props) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(JSON.stringify(data.error));
-      setForm(empty);
       setOpen(false);
+      await refreshMembers();
       onAdded();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "新增失敗");
@@ -54,10 +67,18 @@ export default function AddHoldingForm({ market, onAdded }: Props) {
     }
   }
 
+  const fields = [
+    { label: "股票代號" + (market === "TW" ? "（不含 .TW）" : ""), field: "ticker", placeholder: market === "TW" ? "2330" : "AAPL", type: "text" },
+    { label: "股票名稱", field: "stockName", placeholder: market === "TW" ? "台積電" : "Apple", type: "text" },
+    { label: "銀行帳戶", field: "accountName", placeholder: "永豐", type: "text" },
+    { label: "持股股數", field: "shares", placeholder: "100", type: "number" },
+    { label: `平均成本（${market === "TW" ? "TWD" : "USD"}，選填）`, field: "avgCost", placeholder: "500", type: "number" },
+  ];
+
   return (
     <div>
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={open ? () => setOpen(false) : handleOpen}
         className="px-5 py-2 rounded-full border border-[#8B9E77] text-[#8B9E77] text-sm font-medium hover:bg-[#F0F4EC] transition-colors"
       >
         {open ? "取消" : "+ 新增持股"}
@@ -68,13 +89,24 @@ export default function AddHoldingForm({ market, onAdded }: Props) {
           onSubmit={handleSubmit}
           className="mt-4 bg-white border border-[#E8E0D4] rounded-2xl p-5 grid grid-cols-2 gap-3 md:grid-cols-3"
         >
-          {[
-            { label: "銀行帳戶", field: "accountName", placeholder: "永豐", type: "text" },
-            { label: `股票代號${market === "TW" ? "（不含 .TW）" : ""}`, field: "ticker", placeholder: market === "TW" ? "2330" : "AAPL", type: "text" },
-            { label: "股票名稱", field: "stockName", placeholder: market === "TW" ? "台積電" : "Apple", type: "text" },
-            { label: "持股股數", field: "shares", placeholder: "100", type: "number" },
-            { label: `平均成本（${market === "TW" ? "TWD" : "USD"}，選填）`, field: "avgCost", placeholder: "500", type: "number" },
-          ].map(({ label, field, placeholder, type }) => (
+          {/* 成員欄 */}
+          <label className="flex flex-col gap-1 col-span-2 md:col-span-1">
+            <span className="text-xs text-[#9E8E7E]">成員</span>
+            <input
+              type="text"
+              list="members-list"
+              placeholder="我"
+              value={form.owner}
+              onChange={(e) => update("owner", e.target.value)}
+              required
+              className="border border-[#E0D8CC] rounded-lg px-3 py-1.5 text-sm text-[#3A3028] bg-[#FAFAF8] focus:outline-none focus:border-[#8B9E77]"
+            />
+            <datalist id="members-list">
+              {members.map((m) => <option key={m} value={m} />)}
+            </datalist>
+          </label>
+
+          {fields.map(({ label, field, placeholder, type }) => (
             <label key={field} className="flex flex-col gap-1">
               <span className="text-xs text-[#9E8E7E]">{label}</span>
               <input

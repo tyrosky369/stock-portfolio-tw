@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { fetchPrice, fetchUsdTwdRate } from "@/lib/yahoo";
+import { fetchTwPrice, fetchPrice, fetchUsdTwdRate } from "@/lib/yahoo";
 import { Market } from "@prisma/client";
 
 const RefreshSchema = z.object({
@@ -34,8 +34,9 @@ export async function POST(req: NextRequest) {
 
   const snapshots = await Promise.allSettled(
     holdings.map(async (h) => {
-      const ticker = market === "TW" ? `${h.ticker}.TW` : h.ticker;
-      const priceLocal = await fetchPrice(ticker);
+      const priceLocal = market === "TW"
+        ? await fetchTwPrice(h.ticker)
+        : await fetchPrice(h.ticker);
       const priceTwd =
         market === "TW" ? priceLocal : priceLocal * usdTwdRate!;
 

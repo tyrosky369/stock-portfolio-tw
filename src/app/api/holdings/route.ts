@@ -7,6 +7,7 @@ import { Market } from "@prisma/client";
 
 const CreateSchema = z.object({
   market: z.enum(["TW", "US"]),
+  owner: z.string().min(1).default("我"),
   accountName: z.string().min(1),
   ticker: z.string().min(1).toUpperCase(),
   stockName: z.string().min(1),
@@ -16,15 +17,17 @@ const CreateSchema = z.object({
 
 export async function GET(req: NextRequest) {
   const market = req.nextUrl.searchParams.get("market") as Market | null;
+  const owner = req.nextUrl.searchParams.get("owner");
+
+  const where: Record<string, unknown> = {};
+  if (market) where.market = market;
+  if (owner && owner !== "全部") where.owner = owner;
 
   const holdings = await prisma.stockHolding.findMany({
-    where: market ? { market } : undefined,
+    where,
     orderBy: { createdAt: "asc" },
     include: {
-      priceSnapshots: {
-        orderBy: { snapshotAt: "desc" },
-        take: 1,
-      },
+      priceSnapshots: { orderBy: { snapshotAt: "desc" }, take: 1 },
     },
   });
 
@@ -55,6 +58,7 @@ export async function GET(req: NextRequest) {
 
     return {
       id: h.id,
+      owner: h.owner,
       market: h.market,
       accountName: h.accountName,
       ticker: h.ticker,
@@ -82,11 +86,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { market, accountName, ticker, stockName, shares, avgCost } = parsed.data;
+  const { market, owner, accountName, ticker, stockName, shares, avgCost } = parsed.data;
+
+  // 若成員不在 members 表，自動新增
+  const count = await prisma.member.count();
+  await prisma.member.upsert({
+    where: { name: owner },
+    update: {},
+    create: { name: owner, sortOrder: count },
+  });
 
   const holding = await prisma.stockHolding.create({
     data: {
       market: market as Market,
+      owner,
       accountName,
       ticker,
       stockName,
