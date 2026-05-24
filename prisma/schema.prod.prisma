@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Market {
+  TW
+  US
+}
+
+model StockHolding {
+  id          String   @id @default(uuid())
+  market      Market
+  accountName String
+  ticker      String
+  stockName   String
+  owner       String   @default("我")
+  shares      Float
+  avgCost     Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  priceSnapshots PriceSnapshot[]
+
+  @@map("stock_holdings")
+}
+
+model PriceSnapshot {
+  id         String   @id @default(uuid())
+  ticker     String
+  market     Market
+  priceLocal Float
+  priceTwd   Float
+  usdTwdRate Float?
+  snapshotAt DateTime @default(now())
+
+  holding   StockHolding? @relation(fields: [holdingId], references: [id], onDelete: Cascade)
+  holdingId String?
+
+  @@map("price_snapshots")
+}
+
+model Member {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("members")
+}
+
+model PortfolioSnapshot {
+  id            String   @id @default(uuid())
+  totalValueTwd Float
+  twValueTwd    Float
+  usValueTwd    Float
+  snapshotAt    DateTime @default(now())
+
+  @@map("portfolio_snapshots")
+}
