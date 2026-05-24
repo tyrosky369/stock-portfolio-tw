@@ -1,12 +1,14 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+const dbUrl = process.env.DATABASE_URL ?? "";
+
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  schema: dbUrl.startsWith("postgres") ? "prisma/schema.prod.prisma" : "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env.TURSO_DATABASE_URL ?? process.env["DATABASE_URL"] ?? "file:./prisma/dev.db",
+    url: dbUrl || "file:./prisma/dev.db",
   },
 });

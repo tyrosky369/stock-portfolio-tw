@@ -3,7 +3,7 @@ services:
     name: stock-portfolio-tw
     runtime: node
     plan: free
-    buildCommand: npm ci && npx prisma generate --schema=prisma/schema.prod.prisma && npx prisma db push --schema=prisma/schema.prod.prisma --skip-generate && npx next build
+    buildCommand: npm ci && npx prisma generate && npx prisma db push && npx next build
     startCommand: npm start
     envVars:
       - key: DATABASE_URL
