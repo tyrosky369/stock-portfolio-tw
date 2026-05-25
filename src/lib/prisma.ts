@@ -7,8 +7,14 @@ function createPrismaClient(): PrismaClient {
   const dbUrl = process.env.DATABASE_URL ?? "";
 
   if (dbUrl.startsWith("postgres")) {
-    // Production: Render PostgreSQL
-    return new PrismaClient();
+    // Production: PostgreSQL via @prisma/adapter-pg
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Pool } = require("pg");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { PrismaPg } = require("@prisma/adapter-pg");
+    const pool = new Pool({ connectionString: dbUrl });
+    const adapter = new PrismaPg(pool);
+    return new PrismaClient({ adapter });
   }
 
   // Local dev: SQLite via @libsql/client
