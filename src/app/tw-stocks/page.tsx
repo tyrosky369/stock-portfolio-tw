@@ -6,7 +6,7 @@ import AddHoldingForm from "@/components/stocks/AddHoldingForm";
 import RefreshPriceButton from "@/components/stocks/RefreshPriceButton";
 import Card from "@/components/ui/Card";
 import { HoldingRow } from "@/types";
-import { formatTwd } from "@/lib/formatters";
+import { formatTwd, formatPercent, pnlColor } from "@/lib/formatters";
 import { useMember } from "@/contexts/MemberContext";
 
 export default function TwStocksPage() {
@@ -25,6 +25,10 @@ export default function TwStocksPage() {
   useEffect(() => { fetchHoldings(); }, [fetchHoldings]);
 
   const totalValue = holdings.reduce((s, h) => s + (h.currentValueTwd ?? 0), 0);
+  const hasPnl = holdings.some((h) => h.pnlTwd != null);
+  const totalPnlTwd = holdings.reduce((s, h) => s + (h.pnlTwd ?? 0), 0);
+  const totalCostTwd = holdings.reduce((s, h) => s + (h.costTwd ?? 0), 0);
+  const totalPnlPct = totalCostTwd > 0 ? (totalPnlTwd / totalCostTwd) * 100 : null;
   const showOwner = selectedOwner === "全部";
 
   return (
@@ -37,6 +41,17 @@ export default function TwStocksPage() {
           {totalValue > 0 && (
             <p className="text-sm text-[#9E8E7E] mt-0.5">
               現值合計：<span className="text-[#8B9E77] font-semibold">{formatTwd(totalValue)}</span>
+            </p>
+          )}
+          {hasPnl && (
+            <p className="text-sm text-[#9E8E7E] mt-0.5">
+              總損益：
+              <span className={`font-semibold ${pnlColor(totalPnlTwd)}`}>{formatTwd(totalPnlTwd)}</span>
+              {totalPnlPct != null && (
+                <span className={`ml-1.5 text-xs font-medium ${pnlColor(totalPnlPct)}`}>
+                  ({formatPercent(totalPnlPct)})
+                </span>
+              )}
             </p>
           )}
         </div>

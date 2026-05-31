@@ -17,17 +17,14 @@ function createPrismaClient(): PrismaClient {
     return new PrismaClient({ adapter });
   }
 
-  // Local dev: SQLite via @libsql/client
+  // Local dev: SQLite via better-sqlite3
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { createClient } = require("@libsql/client");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PrismaLibSQL } = require("@prisma/adapter-libsql");
+  const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
   const filePath = dbUrl.replace(/^file:/, "") || "./prisma/dev.db";
   const absolutePath = path.isAbsolute(filePath)
     ? filePath
     : path.join(process.cwd(), filePath);
-  const libsql = createClient({ url: `file:${absolutePath}` });
-  const adapter = new PrismaLibSQL(libsql);
+  const adapter = new PrismaBetterSqlite3({ url: `file:${absolutePath}` });
   return new PrismaClient({ adapter });
 }
 

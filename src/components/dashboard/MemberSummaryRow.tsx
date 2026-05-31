@@ -52,6 +52,11 @@ export default function MemberSummaryRow({ summaries }: { summaries: MemberSumma
               <span className="text-xs text-[#8B9E77]">台 {twPct.toFixed(0)}%</span>
               <span className="text-xs text-[#6B5344]">美 {usPct.toFixed(0)}%</span>
             </div>
+            {m.pnlTwd !== null && (
+              <p className={`text-xs font-medium mt-1 ${m.pnlTwd >= 0 ? "text-green-600" : "text-red-500"}`}>
+                {m.pnlTwd >= 0 ? "+" : ""}{formatTwd(m.pnlTwd)}
+              </p>
+            )}
           </button>
         );
       })}

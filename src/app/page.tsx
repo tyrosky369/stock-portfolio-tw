@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import TotalValueCard from "@/components/dashboard/TotalValueCard";
 import PieChartTW from "@/components/dashboard/PieChartTW";
 import PieChartUS from "@/components/dashboard/PieChartUS";
+import AssetClassPieChart from "@/components/dashboard/AssetClassPieChart";
 import TrendLineChart from "@/components/dashboard/TrendLineChart";
 import MemberSummaryRow from "@/components/dashboard/MemberSummaryRow";
 import { PortfolioSummary, PortfolioSnapshotPoint } from "@/types";
@@ -53,6 +54,11 @@ export default function DashboardPage() {
         <PieChartTW holdings={summary.twHoldings} />
         <PieChartUS holdings={summary.usHoldings} />
       </div>
+
+      <AssetClassPieChart
+        twHoldings={summary.twHoldings}
+        usHoldings={summary.usHoldings}
+      />
 
       <TrendLineChart snapshots={snapshots} />
     </div>

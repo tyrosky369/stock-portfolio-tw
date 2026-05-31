@@ -24,6 +24,7 @@ export interface MemberSummary {
   totalValueTwd: number;
   twValueTwd: number;
   usValueTwd: number;
+  pnlTwd: number | null;
 }
 
 export interface PortfolioSummary {
